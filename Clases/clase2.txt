@@ -1,0 +1,164 @@
+Repaso clase 1:
+	* NodeJS: Engine para correr código JS fuera del browser/en el servidor 
+		(JS para backend) permitiendo acceder a archivos de la máquina
+		entre otras cosas.
+--------------------------------------------------------------------------------
+Node no puede ejecutar un archivo en TS, se necesita transpilar
+el mismo a JS usando el comando npx tsc, el cual transpila el código TS a JS.
+
+--------------------------------------------------------------------------------
+interfaces y types en TS
+	* Sirven para definir tipos por el usuario que no sean primitivos de TS
+	* Las interfaces se pueden extender, los types no.
+	* En el type se deben usar todos los campos declarados dentro del mismo.
+Al momento de transpilar a JS, los Types e Interfaces son borrados del archivo.
+
+--------------------------------------------------------------------------------
+Barrel pattern
+--------------------------------------------------------------------------------
+Patrón de exportación, sirve para reducir líneas de importación e importar 
+desde un módulo independiente.
+
+Ejemplo:
+
+	En un archivo index.ts dentro de la carpeta ./src/interfaces
+
+	export * from './Empleado';
+	export * from './Persona';
+--------------------------------------------------------------------------------
+//Código de ejemplo
+import { Empleado, Persona } from './interfaces/index';
+
+type Persona = {
+	id: number,
+	nombre: string,
+	apellido: string,
+	dni: string
+}
+
+interface Persona {
+	id: number;
+	nombre: string;
+	apellido: string;
+	dni?: string;		//Ambos permiten tener campos opcionales
+}
+
+interface Empleado extends Persona {
+	legajo: string;
+	sueldo: number;
+}
+
+interface Supervisor extends Empleado {
+	supervisados: Empleado[]
+}
+
+const personas: Persona[] = [
+	{
+		"id": 1234
+		"nombre": "Ana",
+		"apellido": "Barraza",
+		"dni": "43356991"	
+	},
+	{
+		"id": 2345,
+		"nombre": "Augusto",
+		"apellido": "Kopach",
+		"dni": "40236095"
+	}
+];
+
+const martin: Empleado = {
+	legajo: '234234',
+	sueldo: 12415125,
+	id: 123,
+	nombre: 'Martin',
+	apellido: 'Sauczuk',
+	dni: '33103134',
+}
+
+const alan: Empleado = {
+	apellido: 'Rodas',
+	dni: '2345234',
+	id: 123123,
+	legajo: '23523',
+	nombre: 'Alan',
+	sueldo: 9872352,
+}
+
+const flavia: Supervisor = {
+	apellido: 'asdf',
+	dni: '2356',
+	id: 43466,
+	legajo: '23573',
+	nombre: 'Flavia',
+	sueldo: 9584234,
+	supervisados: [alan, martin],
+}
+
+console.log('Las perosnas son: ');
+personas.forEach( (persona) => console.log(`Nombre: ${persona.nombre} Apellido: ${persona.apellido}`) );
+
+--------------------------------------------------------------------------------
+Nodemon: Dependencia para transpilar los archivos 
+
+Instalación:
+	npm install -D nodemon
+	npm install -D ts-node
+
+Nodemon tiene un archivo de configuración, el mismo se debe crear bajo el nombre nodemon.json (carpeta raiz del proyecto)
+
+{
+	"watch": ["src"],
+	"ext": ".ts, .js",
+	"ignore": [],
+	"exec": "npx ts-node ./rutaAplicacion" 
+}
+
+Para ejecutar:
+	npx nodemon
+
+Dentro del package.json se puede agregar el script "dev": "nodemon"
+
+
+Script build: Dentro del package.json agregar:
+	"scripts": {
+		 "build": "tsc"
+	}
+Se puede ejecutar el comando agregado usando: npm run build
+
+--------------------------------------------------------------------------------
+Rimraf: Dependencia para eliminar carpetas en cada build
+	npm install -D rimraf
+agregar al script build (en package.json)
+	"scripts": {
+		...
+		"build": "rimraf ./dist && tsc"
+	}
+Se pueden combinar los comandos para que se ejecute todo el proceso de 
+borrar carpetas, transpilado y ejecución del programa en un comando.
+	"start": "npm run build && node dist/app.js"
+
+Creación de proyecto React
+	npm create vite@latest nombreDelProyecto
+
+-----------------------------------------------------------------------
+Creación de servidor node
+-----------------------------------------------------------------------
+import { createServer } from 'http';
+
+
+const server = createServer((request, response) => {
+	const url = request.url;
+	console.log(`Recibimos tu request en la url ${url}`);
+	if(url === '/personas'){
+		response.writeHead(200);
+		response.end(JSON.stringify(personas))	
+	} else {
+		response.end(`Tu respuesta a la ${url} es Hola mundo`);
+	}
+})
+
+server.listen(3000, () => {
+	console.log('Servidor funcionando en puerto 3000');
+})
+
